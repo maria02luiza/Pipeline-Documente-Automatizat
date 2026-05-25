@@ -1,0 +1,85 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "e357df6d-b755-49df-84c1-be67f61c524c",
+        "responseMode": "lastNode",
+        "options": {
+          "allowedOrigins": "*",
+          "binaryPropertyName": "data"
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -176,
+        -32
+      ],
+      "id": "ab1f56f3-726f-47c0-b616-0dee9c6036fe",
+      "name": "Webhook",
+      "webhookId": "e357df6d-b755-49df-84c1-be67f61c524c"
+    },
+    {
+      "parameters": {
+        "resource": "image",
+        "operation": "analyze",
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.5-flash"
+        },
+        "text": "Gândește pas cu pas ca un contabil autorizat. Analizează imaginea atașată și extrage datele solicitate. Răspunde strict în format JSON brut, fără formatări markdown.\n\nExemplu de răspuns așteptat (folosește EXACT aceste chei):\n{\n  \"supplier\": \"FIRMA TEST SRL\",\n  \"invoiceNumber\": \"00012\",\n  \"date\": \"10-06-2008\",\n  \"total\": \"108,08\",\n  \"vat\": \"17,26\"\n}\n\nDacă nu găsești o valoare sau textul este ilizibil, ghicește pe baza contextului sau lasă cheia respectivă goală, dar NU scrie cuvântul \"Nedetectat\" în interiorul JSON-ului.",
+        "inputType": "binary",
+        "binaryPropertyName": "data0",
+        "options": {
+          "maxOutputTokens": 2000
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        32,
+        -32
+      ],
+      "id": "34ae0b86-8bed-4477-b3b6-3bf3a0266a17",
+      "name": "Analyze an image",
+      "retryOnFail": true,
+      "credentials": {
+        "googlePalmApi": {
+          "id": "W4NyZnt2DbY4jlop",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Analyze an image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "18ff5c1e-5a28-4583-b68d-a6f58defa2ae",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "4556d0dc8453a70dda6ca3e7ddf65bbd29233b5d45a946b808b04af91d00440d"
+  },
+  "id": "a7Lv1M1bGcEW0b2O",
+  "tags": []
+}
