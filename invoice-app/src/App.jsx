@@ -370,6 +370,7 @@ export default function InvoiceAIProcessor() {
                       <span className="px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-bold">
                         Aprobată
                       </span>
+                      
                     </td>
                   </tr>
                 ))}
