@@ -399,7 +399,8 @@ export default function InvoiceAIProcessor() {
                         <th className="px-4 py-4">Status</th>
                       </tr>
                     </thead>
-                    <tbody>
+                      <tbody>
+                        
                       {approvedInvoices.map((invoice) => (
                         <tr key={invoice.id} className="border-t border-white/10">
                           <td className="px-4 py-4 font-bold">{invoice.supplier}</td>
