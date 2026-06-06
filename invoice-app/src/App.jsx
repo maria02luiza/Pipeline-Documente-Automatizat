@@ -28,9 +28,66 @@ export default function InvoiceAIProcessor() {
   const [approvedInvoices, setApprovedInvoices] = useState([]);
   const [error, setError] = useState(null);
   const inputRef = useRef();
+  
+  const validateFile = async (file) => {
+    if (!file || file.size === 0) {
+      setError(
+        "Procesare Eșuată: Documentul este protejat prin parolă sau corupt. Vă rugăm să încărcați un fișier valid."
+      );
+      return false;
+    }
+
+    try {
+      const buffer = await file.slice(0, 1024).arrayBuffer();
+      const text = new TextDecoder().decode(buffer);
+
+      // VALIDARE PDF
+      if (file.type === "application/pdf") {
+        if (!text.includes("%PDF-")) {
+          setError(
+            "Procesare Eșuată: PDF corupt sau invalid."
+          );
+          return false;
+        }
+
+        if (text.includes("/Encrypt")) {
+          setError(
+            "Procesare Eșuată: Documentul este protejat prin parolă."
+          );
+          return false;
+        }
+      }
+
+      // VALIDARE IMAGINE
+      if (file.type.startsWith("image/")) {
+        try {
+          await createImageBitmap(file);
+        } catch {
+          setError(
+            "Procesare Eșuată: Imagine coruptă."
+          );
+          return false;
+        }
+      }
+
+      return true;
+    } catch {
+      setError(
+        "Procesare Eșuată: Fișier invalid sau corupt."
+      );
+      return false;
+    }
+  };
 
   const handleProcess = async () => {
     if (!file) return;
+
+    const isValid = await validateFile(file);
+
+    if (!isValid) {
+      // Modificare utilă: lăsăm utilizatorul pe pasul 0 ca să vadă eroarea pe ecranul de încărcare
+      return;
+    }
 
     setStep(1);
     setError(null);
@@ -48,12 +105,16 @@ export default function InvoiceAIProcessor() {
       });
 
       if (!response.ok) {
-        throw new Error("Serverul AI este momentan ocupat.");
+        setError(
+          "Procesare Eșuată: Documentul este protejat prin parolă sau corupt. Vă rugăm să încărcați un fișier valid."
+        );
+        setStep(1);
+        return; // Oprim execuția aici
       }
 
+      // 3. Dacă totul e ok, continuăm normal
       const rawData = await response.json();
       console.log("RĂSPUNS RAW DIN N8N:", rawData);
-
       let aiText = "";
 
       if (rawData.content && rawData.content.parts && rawData.content.parts[0]) {
@@ -89,11 +150,19 @@ export default function InvoiceAIProcessor() {
     } catch (err) {
       console.error("Eroare la procesare:", err);
 
-      setError(
-        "Serverele Google sunt supraîncărcate în acest moment. Te rugăm să aștepți 30 de secunde și să încerci din nou."
-      );
+      const errorText = err.toString() || "";
+  
+      if (errorText.includes("no pages") || errorText.includes("parameters")) {
+        setError(
+          "Procesare Eșuată: Documentul este protejat prin parolă sau corupt. Vă rugăm să încărcați un fișier valid."
+        );
+      } else {
+        setError(
+          "Serverele Google sunt supraîncărcate în acest moment. Te rugăm să aștepți 30 de secunde și să încerci din nou."
+        );
+      }
     }
-  };
+  }; // <--- Aici era problema, acum funcția handleProcess este închisă corect!
 
   const handleApprove = () => {
     if (!fields) return;
@@ -164,6 +233,13 @@ export default function InvoiceAIProcessor() {
                   Trimite direct în cloud-ul tău n8n
                 </p>
               </div>
+
+              {/* Afișăm eroarea direct la pasul 0 dacă fișierul pică validarea locală */}
+              {error && (
+                <p style={{ color: '#e74c3c', fontSize: '13px', fontWeight: 'bold', textAlign: 'center' }}>
+                  {error}
+                </p>
+              )}
 
               <button
                 onClick={handleProcess}
